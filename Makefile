@@ -12,15 +12,13 @@ PLATFORM ?= linux# Default platform
 ARCH ?= x64# Default architecture
 
 ifeq ($(OS),Windows_NT)# Shell commands setup
-MKDIR_CMD:=mkdir
-RM_CMD:=del /Q /S
-FIND_CMD:=for /R
-CP_CMD:=copy
+MKDIR_CMD := mkdir
+RM_CMD := del /Q /S
+CP_CMD := copy
 else
-MKDIR_CMD:=mkdir -p
-RM_CMD:=rm -r
-FIND_CMD:=find
-CP_CMD:=cp
+MKDIR_CMD := mkdir -p
+RM_CMD := rm -r
+CP_CMD := cp
 endif
 
 # ===PROGRAM SETUP===
@@ -30,12 +28,20 @@ OUT_PATH:= ../bin
 OBJ_PATH:= ../obj
 
 MODULES = main debug
-SOURCES:= $(shell $(FIND_CMD) $(MODULES) -name "*.cpp")
+ifeq ($(OS),Windows_NT)# gets all source files including subdirs
+SOURCES:= $(shell dir $(MODULES) /B/S/A-D)
+else
+SOURCES:= $(shell find $(MODULES) -name "*.cpp")
+endif
 OBJS = $(SOURCES:%.cpp=$(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%.o)
 DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
-INCLUDE := $(shell $(FIND_CMD) ./include -type d)
+ifeq ($(OS),Windows_NT)# gets all included subdirs
+INCLUDE := $(shell dir /AD /B /S ./include)
+else
+INCLUDE := $(shell find ./include -type d)
+endif
 INCLUDE := $(INCLUDE:%=-I%)
 INCLUDE += -I./ -I/include
 LIBS:=
@@ -51,22 +57,28 @@ FLAGS:= -Wall \
 setup:
 	echo ${OS}
 	$Qecho "Making for $(PLATFORM)-$(ARCH)"
-	$Q$(MKDIR_CMD) ${OBJ_PATH}/${PLATFORM}/${ARCH}
 
 ifeq ($(OS),Windows_NT)
+	$Q$(MKDIR_CMD) "${OBJ_PATH}/${PLATFORM}/${ARCH}" 2>NUL
+
 	for %%M in ($(MODULES)) do ( \
 		for /D %%D in (%%M\\*) do ( \
-			$(MKDIR_CMD) $(OBJ_PATH)\\$(PLATFORM)\\$(ARCH)\\%%D \
+			$(MKDIR_CMD) "$(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%%D" 2>NUL \
 		) \
 	)
+
+	$Q$(MKDIR_CMD) "${OUT_PATH}/${PLATFORM}/${ARCH}" 2>NUL
 else
+	$Q$(MKDIR_CMD) "${OBJ_PATH}/${PLATFORM}/${ARCH}"
+
 	$Qfor module in $(MODULES); do \
-		$(FIND_CMD) $$module -type d | while read subfolder; do \
+		find $$module -type d | while read subfolder; do \
 			$(MKDIR_CMD) ${OBJ_PATH}/${PLATFORM}/${ARCH}/$$subfolder; \
 		done; \
 	done
+
+	$Q$(MKDIR_CMD) "${OUT_PATH}/${PLATFORM}/${ARCH}"
 endif
-	$Q$(MKDIR_CMD) ${OUT_PATH}/${PLATFORM}/${ARCH}
 
 # Platform/Architecture specific setups
 linux: $(ARCH)
@@ -91,7 +103,7 @@ $(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%.o: %.cpp
 	$Q${CC} -MM -MF $(@:.o=.d) -MT $@ $< ${FLAGS} ${INCLUDE}
 
 clean:
-	$Q$(RM_CMD) ${OBJ_PATH}/*
+	$Q$(RM_CMD) "${OBJ_PATH}/"
 
 run: 
 	$Q${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME} 2
