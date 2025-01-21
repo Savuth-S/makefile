@@ -29,7 +29,7 @@ OBJ_PATH:= ../obj
 
 MODULES = main debug
 ifeq ($(OS),Windows_NT)# gets all source files including subdirs
-SOURCES:= $(shell dir $(MODULES) /B/S/A-D)
+SOURCES:= $(shell for /F "delims=" %%A in ('dir main /B/S/A-D') do @echo main\%%~nxA)
 else
 SOURCES:= $(shell find $(MODULES) -name "*.cpp")
 endif
@@ -43,7 +43,7 @@ else
 INCLUDE := $(shell find ./include -type d)
 endif
 INCLUDE := $(INCLUDE:%=-I%)
-INCLUDE += -I./ -I/include
+INCLUDE += -I./
 LIBS:=
 FLAGS:= -Wall \
 	   -Wextra \
@@ -55,7 +55,6 @@ FLAGS:= -Wall \
 	   # -D_RELEASE
 
 setup:
-	echo ${OS}
 	$Qecho "Making for $(PLATFORM)-$(ARCH)"
 
 ifeq ($(OS),Windows_NT)
@@ -103,7 +102,7 @@ $(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%.o: %.cpp
 	$Q${CC} -MM -MF $(@:.o=.d) -MT $@ $< ${FLAGS} ${INCLUDE}
 
 clean:
-	$Q$(RM_CMD) "${OBJ_PATH}/"
+	$Q$(RM_CMD) ${OBJ_PATH}/*
 
 run: 
 	$Q${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME} 2
