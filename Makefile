@@ -29,7 +29,13 @@ OBJ_PATH:= ../obj
 
 MODULES = main debug
 ifeq ($(OS),Windows_NT)# gets all source files including subdirs
-SOURCES:= $(shell for /F "delims=" %%A in ('dir main /B/S/A-D') do @echo main\%%~nxA)
+SOURCES:= $(shell cmd /V:ON /C "for /F %%A in ('dir /A-D /B /S $(MODULES)') \
+		  do ( \
+			set fullpath=%%A && \
+			set relativepath=!fullpath:*$(MODULES)\=$(MODULES)\! && \
+			echo !relativepath! \
+			)" \
+		  )
 else
 SOURCES:= $(shell find $(MODULES) -name "*.cpp")
 endif
@@ -38,14 +44,14 @@ DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
 ifeq ($(OS),Windows_NT)# gets all included subdirs
-INCLUDE := $(shell dir /AD /B /S ./include)
+INCLUDE := $(shell (for /F "delims=" %%D in ('dir /AD /B /S ./include') do @echo %%D) & echo ./include)
 else
 INCLUDE := $(shell find ./include -type d)
 endif
 INCLUDE := $(INCLUDE:%=-I%)
 INCLUDE += -I./
-LIBS:=
-FLAGS:= -Wall \
+LIBS :=
+FLAGS := -Wall \
 	   -Wextra \
 	   -Wconversion \
 	   -Wpedantic \
@@ -54,19 +60,17 @@ FLAGS:= -Wall \
 	   -D_DEBUG
 	   # -D_RELEASE
 
+
 setup:
 	$Qecho "Making for $(PLATFORM)-$(ARCH)"
+	$Q$(MKDIR_CMD) "${OBJ_PATH}/${PLATFORM}/${ARCH}"
 
 ifeq ($(OS),Windows_NT)
-	$Q$(MKDIR_CMD) "${OBJ_PATH}/${PLATFORM}/${ARCH}" 2>NUL
-
 	for %%M in ($(MODULES)) do ( \
 		for /D %%D in (%%M\\*) do ( \
-			$(MKDIR_CMD) "$(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%%D" 2>NUL \
+			$(MKDIR_CMD) "$(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%%D" \
 		) \
 	)
-
-	$Q$(MKDIR_CMD) "${OUT_PATH}/${PLATFORM}/${ARCH}" 2>NUL
 else
 	$Q$(MKDIR_CMD) "${OBJ_PATH}/${PLATFORM}/${ARCH}"
 
@@ -75,9 +79,9 @@ else
 			$(MKDIR_CMD) ${OBJ_PATH}/${PLATFORM}/${ARCH}/$$subfolder; \
 		done; \
 	done
+endif
 
 	$Q$(MKDIR_CMD) "${OUT_PATH}/${PLATFORM}/${ARCH}"
-endif
 
 # Platform/Architecture specific setups
 linux: $(ARCH)
@@ -85,15 +89,25 @@ linux: $(ARCH)
 	$(eval CC:= g++)
 	$Qecho Set compiler as $(CC)...
 
-windows: $(ARCH) 
+DLLS_PATH := /usr/x86_64-w64-mingw32/bin
+DLLS := libgcc_s_seh-1 libstdc++-6 libwinpthread-1
+DLLS := $(DLLS:%=%.dll)
+windows: $(ARCH) $(DLLS)
 	$Qecho "Setting up $@ environment..."
 	$(eval CC:= x86_64-w64-mingw32-g++)
 	$Qecho Set compiler as $(CC)...
+%.dll:
+	$Qecho "Copying DLL $@.."
+	$Q$(CP_CMD) "$(DLLS_PATH)/$@" "${OUT_PATH}/${PLATFORM}/${ARCH}"
 
 
-build: setup $(PLATFORM) $(OBJS)
-	$Qecho Making $(NAME)...
-	$Q${CC} ${FLAGS} $(OBJS) ${LIBS} -o ${OUT_PATH}/${PLATFORM}/$(ARCH)/${NAME}
+build: setup $(PLATFORM) 
+	$Qecho "untff"
+	$Qecho $(OS)
+	$Qecho $(SOURCES)
+	$Qecho "wtfff"
+	$Qecho Assembling $(NAME)...
+	$Q${CC} ${FLAGS} $(OBJS) ${LIBS} -o ${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME}
 	$Qecho Done!
 
 $(OBJ_PATH)/$(PLATFORM)/$(ARCH)/%.o: %.cpp
@@ -126,12 +140,3 @@ all:
             $(MAKE) build PLATFORM=$$platform ARCH=$$arch; \
         done; \
     done
-
-#WINDOWS DEFINES
-DLLS_PATH=/usr/x86_64-w64-mingw32/bin
-
-DLLS=SDL2 SDL2_image zlib libpng #libjpeg libtiff libwebp
-DLLS-WIN=$(LIBS-WIN:%=$(OUT_PATH)/$(WIN_PLATFORM)/%) #LINE WHEN COPYING DLLS
-
-${OUT_PATH}/${WIN_PLATFORM}/%: ${DLLS_PATH}/%*
-	@$(CP_CMD) $< ${OUT_PATH}/${WIN_PLATFORM}
