@@ -101,11 +101,7 @@ windows: $(ARCH) $(DLLS)
 	$Q$(CP_CMD) "$(DLLS_PATH)/$@" "${OUT_PATH}/${PLATFORM}/${ARCH}"
 
 
-build: setup $(PLATFORM) 
-	$Qecho "untff"
-	$Qecho $(OS)
-	$Qecho $(SOURCES)
-	$Qecho "wtfff"
+build: setup $(PLATFORM) $(OBJS)
 	$Qecho Assembling $(NAME)...
 	$Q${CC} ${FLAGS} $(OBJS) ${LIBS} -o ${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME}
 	$Qecho Done!
