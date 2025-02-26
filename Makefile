@@ -24,10 +24,10 @@ endif
 # ===PROGRAM SETUP===
 NAME:= Boards
 
-OUT_PATH:= ../bin
-OBJ_PATH:= ../obj
+OUT_PATH:= bin
+OBJ_PATH:= obj
 
-MODULES = main debug
+MODULES = src/main src/debug
 ifeq ($(OS),Windows_NT)# gets all source files including subdirs
 SOURCES:= $(shell cmd /V:ON /C "for /F %%A in ('dir /A-D /B /S $(MODULES)') \
 		  do ( \
@@ -44,12 +44,12 @@ DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
 ifeq ($(OS),Windows_NT)# gets all included subdirs
-INCLUDE := $(shell (for /F "delims=" %%D in ('dir /AD /B /S ./include') do @echo %%D) & echo ./include)
+INCLUDE := $(shell (for /F "delims=" %%D in ('dir /AD /B /S ./include') do @echo %%D) & echo src/include)
 else
-INCLUDE := $(shell find ./include -type d)
+INCLUDE := $(shell find src/include -type d)
 endif
 INCLUDE := $(INCLUDE:%=-I%)
-INCLUDE += -I./
+INCLUDE += -Isrc/
 LIBS :=
 FLAGS := -Wall \
 	   -Wextra \
