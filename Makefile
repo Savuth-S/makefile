@@ -22,7 +22,7 @@ CP_CMD := cp
 endif
 
 # ===PROGRAM SETUP===
-NAME:= Boards
+NAME:= Placeholder
 
 OUT_PATH:= bin
 OBJ_PATH:= obj
