@@ -1,0 +1,75 @@
+# ===MAKEFILE CONFS===
+.PHONY: init setup install update run clean build help 
+.DEFAULT_GOAL := help
+# DEBUG MAKEFILE?
+# Q :=  # ON
+Q := @# OFF
+
+# ===MULTIPLATFORM SETUP===
+ifeq ($(OS),Windows_NT)# Shell commands setup
+RM_CMD := rmdir /S /Q
+else
+RM_CMD := rm -r
+endif
+
+# ===PROGRAM SETUP===
+NAME := Placeholder
+
+VENV ?= .venv# Default venv name
+ifeq ($(OS), Windows_NT)
+BIN_PATH := $(VENV)/Scripts
+else
+BIN_PATH := $(VENV)/bin
+endif
+
+PI ?= $(BIN_PATH)/python
+
+
+init: setup install
+ifeq ($(OS),Windows_NT)
+	$Qecho "Manual start: ./$(BIN_PATH)/activate"
+else
+	$Qecho "Manual start: source $(BIN_PATH)/activate"
+endif
+	$Qecho "Done!"
+
+setup: PI := $(if $(filter $(origin PI), file), $(if $(filter $(OS), Windows_NT), py, python), $(PI))
+setup:
+	$Qecho "Setting up virtual environment..."
+	$Q$(PI) -m venv $(VENV)
+	
+install:
+	$Qecho "Installing $(NAME) and dependencies..."
+	$Q$(PI) -m pip install .
+install-%:
+	$Qecho "Installing [$*] dependencies..."
+	$Q$(PI) -m pip install .[$*]
+	
+update:
+	$Qecho "Updating..."
+	$Q$(PI) -m pip install --upgrade pip
+	$Q$(PI) -m pip_upgrade
+
+run:
+	$Q$(PI) -m $(NAME)
+	
+clean:
+	$Q$(RM_CMD) dist/
+	$Q$(RM_CMD) build/
+
+build:
+	$Qecho "Building $(NAME)..."
+	$Q$(PI) -m PyInstaller $(NAME).spec
+
+help:
+	$Qecho "Usage: make [TARGET] [PI=<interpreter>] [VENV=<venv name>]"
+	$Qecho "Targets:"
+	$Qecho "	help		- Shows this message."
+	$Qecho "	init		- Initializes virtual environment for development."
+	$Qecho "	install		- Installs the project as a module and runtime dependencies."
+	$Qecho "	install-<name>	- Installs optional dependencies group."
+	$Qecho "			Example: make install-dev"
+	$Qecho "	update		- Upgrades pip and installed modules. (requires pip-upgrade-tool package)"
+	$Qecho "	run		- Runs the project module. ($(NAME))"
+	$Qecho "	build		- Builds distributable. (requires PyInstaller package)"
+	$Qecho "	clean		- Cleans all the build artifacts."
