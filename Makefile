@@ -115,7 +115,7 @@ clean:
 	$Q$(RM_CMD) ${OBJ_PATH}/*
 
 run: 
-	$Q${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME} 2
+	$Q${OUT_PATH}/${PLATFORM}/${ARCH}/${NAME}
 
 help:
 	$Qecho "Usage: make [TARGET] [PLATFORM=<platform>] [ARCH=<architecture>]"
