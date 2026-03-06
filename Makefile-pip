@@ -65,7 +65,7 @@ help:
 	$Qecho "Usage: make [TARGET] [PI=<interpreter>] [VENV=<venv name>]"
 	$Qecho "Targets:"
 	$Qecho "	help		- Shows this message."
-	$Qecho "	init		- Initializes virtual environment for development."
+	$Qecho "	init		- Initializes environment for development."
 	$Qecho "	install		- Installs the project as a module and runtime dependencies."
 	$Qecho "	install-<name>	- Installs optional dependencies group."
 	$Qecho "			Example: make install-dev"
