@@ -40,7 +40,7 @@ setup:
 	
 install:
 	$Qecho "Installing $(NAME) and dependencies..."
-	$Q$(PI) -m pip install .
+	$Q$(PI) -m pip install -e .
 install-%:
 	$Qecho "Installing [$*] dependencies..."
 	$Q$(PI) -m pip install .[$*]
