@@ -7,7 +7,7 @@ Q := @# OFF
 
 # ===MULTIPLATFORM SETUP===
 ifeq ($(OS),Windows_NT)# Shell commands setup
-RM_CMD := rmdir /S /Q
+RM_CMD := del /Q /S
 else
 RM_CMD := rm -r
 endif

@@ -7,7 +7,7 @@ Q := @# OFF
 
 # ===MULTIPLATFORM SETUP===
 ifeq ($(OS),Windows_NT)# Shell commands setup
-RM_CMD := rmdir /S /Q
+RM_CMD := del /Q /S
 else
 RM_CMD := rm -r
 endif
@@ -43,7 +43,7 @@ install:
 	$Q$(PI) -m pip install -e .
 install-%:
 	$Qecho "Installing [$*] dependencies..."
-	$Q$(PI) -m pip install .[$*]
+	$Q$(PI) -m pip install -e .[$*]
 	
 update:
 	$Qecho "Updating..."
