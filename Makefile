@@ -37,7 +37,7 @@ update:
 	$Q$(UV) sync --upgrade
 
 run:
-	$Q$(UV) run -m $(NAME) --locked
+	$Q$(UV) run -m --locked $(NAME)
 	
 clean:
 	$Q$(RM_CMD) dist/
